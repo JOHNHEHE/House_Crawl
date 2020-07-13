@@ -2,28 +2,14 @@
 import re
 
 import scrapy
-import sys
-
-sys.path.append("..")
-from ConfigProvider import ConfigProvider
-
-
-# 生成第一个请求url，目的在于获取页数
-def getFirstUrls():
-    # G:/project for python/House_Crawl/LianJia_Crawl/LianJiaConfig.cfg
-    config = ConfigProvider('LianJiaConfig.cfg')
-    city = config.get('secondhand', 'city')
-    areas = config.get('secondhand', 'area').split('/')
-    urls = []
-    for area in areas:
-        urls.append('https://' + city + '.lianjia.com/ershoufang/' + area + '/')
-    return urls
+from .UrlsProvider import UrlsPro
 
 
 class SecondhandOnSaleSpider(scrapy.Spider):
     name = 'SecondhandOnSaleSpider'
     allowed_domains = ['lianjia.com']
-    start_urls = getFirstUrls()
+    urlPro = UrlsPro('sale', 'LianJiaConfig.cfg')
+    start_urls = urlPro.getFirstUrls()
 
     def parse(self, response):
         if response.status == 200:
@@ -32,9 +18,11 @@ class SecondhandOnSaleSpider(scrapy.Spider):
             if tag is None:
                 page = 1
             else:
-                page = re.findall(':(.*),', tag)[0]
-            for i in range(1, int(page) + 1):
-                yield scrapy.Request(response.url + 'pg' + str(i) + '/', callback=self.parseData)
+                page = int(re.findall(':(.*),', tag)[0])
+            # 数据页数满足要求时爬取
+            if page > self.urlPro.getMinPage():
+                for i in range(1, page + 1):
+                    yield scrapy.Request(response.url + 'pg' + str(i) + '/', callback=self.parseData)
         else:
             self.logger.warning("访问失败，请检查配置文件！")
 
