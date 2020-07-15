@@ -17,7 +17,10 @@ class ConfigProvider:
             logging.error('配置文件不存在!')
 
     def get(self, cfg, key):
-        return self.config.get(cfg, key)
+        value = self.config.get(cfg, key)
+        if value is None:
+            return ''
+        return value
 
     def set(self, cfg, key, value):
         return self.config.set(cfg, key, value)

@@ -10,29 +10,37 @@ class SecondhandDealSpider(scrapy.Spider):
     name = 'SecondhandDealSpider'
     allowed_domains = ['lianjia.com']
     urlPro = UrlsPro('deal', 'LianJiaConfig.cfg')
-    start_urls = urlPro.getFirstUrls()
+    start_urls = urlPro.getAllUrls()
 
     def parse(self, response):
         if response.status == 200:
-            tag = response.xpath('/html/body/div[5]/div[1]/div[5]/div[2]/div/@page-data').extract_first()
-            if tag is None:
-                page = 1
+            # 此时请求url不包含区域，对区域链接爬取
+            if len(response.url.split('/')) < 6:
+                for href in response.xpath('/html/body/div[3]/div[1]/dl[2]/dd/div/div//@href').extract():
+                    area = href.split('/')[2]
+                    yield scrapy.Request(response.url + area + '/', callback=self.parse)
+            # 对区域每页爬取
             else:
-                page = int(re.findall(':(.*),', tag)[0])
-            if page > self.urlPro.getMinPage():
-                for i in range(1, page + 1):
-                    yield scrapy.Request(response.url + 'pg' + str(i) + '/', callback=self.parseData)
+                tag = response.xpath('/html/body/div[5]/div[1]/div[5]/div[2]/div/@page-data').extract_first()
+                if tag is None:
+                    page = 1
+                else:
+                    page = int(re.findall(':(.*),', tag)[0])
+                if page > self.urlPro.getMinPage():
+                    for i in range(1, page + 1):
+                        yield scrapy.Request(response.url + 'pg' + str(i) + '/', callback=self.parseData)
         else:
-            self.logger.warning("访问失败，请检查配置文件！")
+            self.logger.error("访问失败，请检查配置文件！")
 
     # 爬取每页
     def parseData(self, response):
-        csv = 'deal_' + re.findall('://(.*)', response.url.split('.')[0])[0] + '_' + response.url.split('/')[-3] + '.csv'
-        # self.logger.warning(csv)
+        csv = 'deal_' + re.findall('://(.*)', response.url.split('.')[0])[0] + '_' + response.url.split('/')[
+            -3] + '.csv'
         for house in response.xpath('/html/body/div[5]/div[1]/ul/li'):
             for houseinfo in house.xpath('div'):
-                description = houseinfo.xpath('div[@class="address"]/div[@class="houseInfo"]//text()').extract_first() +\
-                              ' ' + houseinfo.xpath('div[@class="flood"]/div[@class="positionInfo"]//text()').extract_first()
+                description = houseinfo.xpath('div[@class="address"]/div[@class="houseInfo"]//text()').extract_first() + \
+                              ' ' + houseinfo.xpath(
+                    'div[@class="flood"]/div[@class="positionInfo"]//text()').extract_first()
                 tag_des = houseinfo.xpath('div[@class="dealHouseInfo"]//text()').extract_first()
                 if tag_des is not None:
                     description = description + ' ' + tag_des
@@ -46,19 +54,13 @@ class SecondhandDealSpider(scrapy.Spider):
                 dealDate = houseinfo.xpath('div[@class="address"]/div[@class="dealDate"]//text()').extract_first()
                 dealPrice = houseinfo.xpath('div[@class="address"]/div[@class="totalPrice"]//text()').extract_first()
                 unitPrice = houseinfo.xpath('div[@class="flood"]/div[@class="unitPrice"]//text()').extract_first()
-                '''self.logger.warning(description)
-                self.logger.warning(salePrice)
-                self.logger.warning(saleTime)
-                self.logger.warning(dealDate)
-                self.logger.warning(dealPrice)
-                self.logger.warning(unitPrice)'''
                 yield {
-                            'csv': csv,
-                            'title': houseinfo.xpath('div[@class="title"]//text()').extract_first(),
-                            'description': description,
-                            'salePrice': salePrice,
-                            'saleTime': saleTime,
-                            'dealDate': dealDate,
-                            'dealPrice': dealPrice,
-                            'unitPrice': unitPrice
-                        }
+                    'csv': csv,
+                    'title': houseinfo.xpath('div[@class="title"]//text()').extract_first(),
+                    'description': description,
+                    'salePrice': salePrice,
+                    'saleTime': saleTime,
+                    'dealDate': dealDate,
+                    'dealPrice': dealPrice,
+                    'unitPrice': unitPrice
+                }
