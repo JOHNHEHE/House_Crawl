@@ -6,7 +6,7 @@
 + 前往配置文件LianJiaConfig.cfg，参照提示填写配置信息
 + 切换工作目录到House_Crawl\LianJia_Crawl
 + 调用命令scrapy crawl SecondhandOnSaleSpider或者scrapy crawl SecondhandDealSpider执行二手房在售、成交信息爬取
-+ 爬取结果以csv格式保存在House_Crawl\LianJia_Crawl\data
++ 爬取结果以csv格式保存在House_Crawl\LianJia_Crawl\data，或者储存在mysql数据库中
 
 ## 反爬取
 链家网具有反爬取措施  
