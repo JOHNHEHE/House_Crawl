@@ -29,7 +29,7 @@ LOG_LEVEL = 'WARNING'
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
 
-DOWNLOAD_DELAY = 0.1
+# DOWNLOAD_DELAY = 0.1
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -67,7 +67,7 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    'LianJia_Crawl.pipelines.SecondhandPipeline': 300,
+    'LianJia_Crawl.pipelines.SalePipeline': 300,
     'LianJia_Crawl.pipelines.DealPipeline': 300
 }
 

@@ -37,6 +37,7 @@ class SecondhandDealSpider(scrapy.Spider):
         csv = 'deal_' + re.findall('://(.*)', response.url.split('.')[0])[0] + '_' + response.url.split('/')[
             -3] + '.csv'
         for house in response.xpath('/html/body/div[5]/div[1]/ul/li'):
+            id = house.xpath('a/@href').extract_first().split('/')[-1].split('.')[0]
             for houseinfo in house.xpath('div'):
                 description = houseinfo.xpath('div[@class="address"]/div[@class="houseInfo"]//text()').extract_first() + \
                               ' ' + houseinfo.xpath(
@@ -56,6 +57,7 @@ class SecondhandDealSpider(scrapy.Spider):
                 unitPrice = houseinfo.xpath('div[@class="flood"]/div[@class="unitPrice"]//text()').extract_first()
                 yield {
                     'csv': csv,
+                    'houseID': id,
                     'title': houseinfo.xpath('div[@class="title"]//text()').extract_first(),
                     'description': description,
                     'salePrice': salePrice,

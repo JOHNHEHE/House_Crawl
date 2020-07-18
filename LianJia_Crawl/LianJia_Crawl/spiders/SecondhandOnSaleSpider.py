@@ -37,9 +37,11 @@ class SecondhandOnSaleSpider(scrapy.Spider):
     def parseData(self, response):
         csv = re.findall('://(.*)', response.url.split('.')[0])[0] + '_' + response.url.split('/')[-3] + '.csv'
         for house in response.xpath('//*[@id="content"]/div[1]/ul/li'):
+            id = house.xpath('@data-lj_action_housedel_id').extract_first()
             for houseinfo in house.xpath('div[1]'):
                 yield {
                     'csv': csv,
+                    'houseID': id,
                     'title': houseinfo.xpath('div[@class="title"]//text()').extract_first(),
                     'area': "".join(houseinfo.xpath('div[@class="flood"]//text()').extract()).replace(' ', ''),
                     'description': houseinfo.xpath('div[@class="address"]//text()').extract_first(),
